@@ -21,7 +21,7 @@ export function SignInForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl text-green-600">Welcome!</CardTitle>
+          <CardTitle className="text-xl text-green-400">Welcome!</CardTitle>
           <CardDescription>Sign In with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
