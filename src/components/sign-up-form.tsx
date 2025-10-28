@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { useRouter } from "next/navigation";
-import GoogleSignInButton from "./ui/googleSignInButton";
+import GoogleSignInButton from "./googleSignInButton";
 
 export function SignInForm({
   className,
