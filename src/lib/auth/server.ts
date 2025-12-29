@@ -33,8 +33,10 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
       image: decodedClaims.picture || decodedClaims.photoURL || undefined,
     };
   } catch (error) {
+    console.error("Error verifying session cookie:", error);
     // Session cookie is invalid, expired, or revoked
-    (await cookies()).delete("session"); // Clean up the expired cookie
+    // Note: Cannot delete cookies here as this function may be called from server components
+    // Cookie cleanup should be handled in Server Actions, Route Handlers, or Middleware
     return null;
   }
 }

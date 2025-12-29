@@ -4,41 +4,42 @@
 import { auth, googleProvider } from "@/lib/firebase/client";
 import { signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
-
-// Import your secure Server Action
+import { useEffect, useState } from "react";
 import { createSessionCookie } from "@/actions/auth-actions";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { toast } from "sonner";
 
 export default function GoogleLoginButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // Ensure this component renders only on the client
+    setIsClient(true);
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // 1. **Client Action:** Sign in with Google using a popup
       const result = await signInWithPopup(auth, googleProvider);
-
-      // The user successfully signed in.
       const user = result.user;
-
-      // 2. **Get ID Token:** Obtain the fresh ID token
       const idToken = await user.getIdToken();
-
-      // 3. **Server Handover:** Call the Server Action to create the secure session cookie
       await createSessionCookie(idToken);
-
-      // 4. **Redirect:** Redirect the user to the dashboard
       router.push("/dashboard");
     } catch (error) {
       console.error("Google Sign-In Error:", error);
-      // Display error message to the user
-      alert("Login failed. Please try again.");
+      toast.error("Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isClient) {
+    // Render nothing on the server to avoid mismatches
+    return null;
+  }
+
   return (
     <Button variant="outline" type="button" onClick={handleGoogleLogin}>
       {loading ? (
