@@ -50,15 +50,17 @@ export async function analyzeMeal(imageBase64: string, mimeType: string, userDes
       const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
       
       return JSON.parse(cleanedText);
-    } catch (error: any) {
-      console.warn(`Failed with model ${modelName}:`, error.message);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.warn(`Failed with model ${modelName}:`, errorMessage);
       // If it's the last model, throw the error
       if (modelName === modelsToTry[modelsToTry.length - 1]) {
         console.error("All models failed.");
-        if (error.response) {
-          console.error("Gemini API Error Response:", JSON.stringify(error.response, null, 2));
+        if (error instanceof Error && 'response' in error) {
+          console.error("Gemini API Error Response:", JSON.stringify((error as { response: unknown }).response, null, 2));
         }
-        throw new Error(`Failed to analyze meal image with any model. Last error: ${error.message}`);
+        const lastError = error instanceof Error ? error.message : "Unknown error";
+        throw new Error(`Failed to analyze meal image with any model. Last error: ${lastError}`);
       }
       // Otherwise continue to next model
     }

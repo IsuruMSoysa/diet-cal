@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { analyzeImageAction, saveMealAction, getUserLabelsAction } from "@/actions/meal-actions";
+import {
+  analyzeImageAction,
+  saveMealAction,
+  getUserLabelsAction,
+} from "@/actions/meal-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +14,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, Save, Utensils, X } from "lucide-react";
 import Image from "next/image";
+import type { User } from "firebase/auth";
+import type { MealMacros } from "@/types/meal";
+import { toast } from "sonner";
 
+interface AnalysisResult {
+  foodItems: string[];
+  totalCalories: number;
+  macros: MealMacros;
+  description: string;
+}
 
 export function AddMeal() {
   // Component for adding new meals
@@ -19,10 +32,12 @@ export function AddMeal() {
   const [description, setDescription] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
+    null
+  );
+  const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  
+
   // Labels state
   const [userLabels, setUserLabels] = useState<string[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
@@ -35,7 +50,7 @@ export function AddMeal() {
       const unsubscribe = auth.onAuthStateChanged(async (u) => {
         setUser(u);
         setAuthLoading(false);
-        
+
         // Fetch user labels when authenticated
         if (u) {
           const result = await getUserLabelsAction(u.uid);
@@ -76,45 +91,45 @@ export function AddMeal() {
     if (result.success) {
       setAnalysisResult(result.data);
     } else {
-      alert("Failed to analyze image");
+      toast.error("Failed to analyze image");
     }
   };
 
   const handleSave = async () => {
     if (!imageFile || !analysisResult) return;
-    
+
     if (authLoading) {
-      alert("Please wait, checking authentication...");
+      toast("Please wait, checking authentication...");
       return;
     }
 
     if (!user) {
-      alert("You must be logged in to save meals.");
+      toast.error("You must be logged in to save meals.");
       return;
     }
 
     setIsSaving(true);
     const formData = new FormData();
     formData.append("image", imageFile);
-    
+
     const mealData = {
       userId: user.uid,
       ...analysisResult,
-      labels: selectedLabels
+      labels: selectedLabels,
     };
 
     const result = await saveMealAction(mealData, formData);
     setIsSaving(false);
 
     if (result.success) {
-      alert("Meal saved successfully!");
+      toast.success("Meal saved successfully!");
       setImageFile(null);
       setPreviewUrl(null);
       setAnalysisResult(null);
       setDescription("");
       setSelectedLabels([]);
       setLabelInput("");
-      
+
       // Refresh user labels
       if (user) {
         const labelsResult = await getUserLabelsAction(user.uid);
@@ -123,7 +138,7 @@ export function AddMeal() {
         }
       }
     } else {
-      alert(`Failed to save meal: ${result.error}`);
+      toast.error(`Failed to save meal: ${result.error}`);
     }
   };
 
@@ -137,10 +152,12 @@ export function AddMeal() {
   };
 
   const removeLabel = (label: string) => {
-    setSelectedLabels(selectedLabels.filter(l => l !== label));
+    setSelectedLabels(selectedLabels.filter((l) => l !== label));
   };
 
-  const handleLabelInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleLabelInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       if (labelInput.trim()) {
@@ -150,7 +167,7 @@ export function AddMeal() {
   };
 
   const filteredSuggestions = userLabels.filter(
-    label => 
+    (label) =>
       label.toLowerCase().includes(labelInput.toLowerCase()) &&
       !selectedLabels.includes(label)
   );
@@ -165,13 +182,34 @@ export function AddMeal() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid w-full max-w-sm items-center gap-1.5">
-          <Label htmlFor="meal-image">Meal Image</Label>
-          <Input id="meal-image" type="file" accept="image/*" onChange={handleImageChange} />
+          <Label htmlFor="meal-image" className="mb-1">
+            Meal Image
+          </Label>
+          <div
+            className="flex items-center justify-center w-full h-40 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:border-gray-400 bg-green-500/40"
+            onClick={() => document.getElementById("meal-image")?.click()}
+          >
+            <p className="text-sm text-green-200">
+              Click to upload or drag and drop an image here
+            </p>
+          </div>
+          <Input
+            id="meal-image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
         </div>
 
         {previewUrl && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
-            <Image src={previewUrl} alt="Meal preview" fill className="object-cover" />
+            <Image
+              src={previewUrl}
+              alt="Meal preview"
+              fill
+              className="object-cover"
+            />
           </div>
         )}
 
@@ -179,7 +217,7 @@ export function AddMeal() {
           <>
             <div className="grid w-full gap-1.5">
               <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea 
+              <Textarea
                 id="description"
                 placeholder="Add details for better accuracy (e.g., '2 cups of rice', 'large portion')"
                 value={description}
@@ -187,11 +225,15 @@ export function AddMeal() {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                This helps improve analysis accuracy but won't be saved.
+                This helps improve analysis accuracy but won&apos;t be saved.
               </p>
             </div>
 
-            <Button onClick={handleAnalyze} disabled={isAnalyzing} className="w-full">
+            <Button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
+              className="w-full"
+            >
               {isAnalyzing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -211,7 +253,9 @@ export function AddMeal() {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
             <div className="rounded-lg border p-4 bg-muted/50">
               <h3 className="font-semibold mb-2">Analysis Result</h3>
-              <p className="text-sm text-muted-foreground mb-2">{analysisResult.description}</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                {analysisResult.description}
+              </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="font-medium">Total Calories:</div>
                 <div>{analysisResult.totalCalories} kcal</div>
@@ -227,7 +271,7 @@ export function AddMeal() {
             <div className="grid w-full gap-1.5">
               <Label htmlFor="labels">Labels (Optional)</Label>
               <div className="relative">
-                <Input 
+                <Input
                   id="labels"
                   placeholder="Type to add labels (press Enter or comma)"
                   value={labelInput}
@@ -237,9 +281,11 @@ export function AddMeal() {
                   }}
                   onKeyDown={handleLabelInputKeyDown}
                   onFocus={() => setShowLabelSuggestions(labelInput.length > 0)}
-                  onBlur={() => setTimeout(() => setShowLabelSuggestions(false), 200)}
+                  onBlur={() =>
+                    setTimeout(() => setShowLabelSuggestions(false), 200)
+                  }
                 />
-                
+
                 {showLabelSuggestions && filteredSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-40 overflow-y-auto">
                     {filteredSuggestions.map((label) => (
@@ -254,14 +300,14 @@ export function AddMeal() {
                   </div>
                 )}
               </div>
-              
+
               {selectedLabels.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {selectedLabels.map((label) => (
                     <Badge key={label} variant="secondary" className="gap-1">
                       {label}
-                      <X 
-                        className="h-3 w-3 cursor-pointer" 
+                      <X
+                        className="h-3 w-3 cursor-pointer"
                         onClick={() => removeLabel(label)}
                       />
                     </Badge>
@@ -270,7 +316,12 @@ export function AddMeal() {
               )}
             </div>
 
-            <Button onClick={handleSave} disabled={isSaving} className="w-full" variant="default">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="w-full"
+              variant="default"
+            >
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -285,28 +336,6 @@ export function AddMeal() {
             </Button>
           </div>
         )}
-
-        <div className="mt-4 pt-4 border-t">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full text-xs text-muted-foreground"
-            onClick={async () => {
-              const { debugGemini } = await import("@/actions/meal-actions");
-              const result = await debugGemini();
-              if (result.success) {
-                const modelList = result.geminiModels ? result.geminiModels.join("\n") : "No Gemini models found";
-                alert(`Connection OK!\nFound ${result.geminiModels?.length || 0} Gemini models:\n${modelList}`);
-                console.log("Available Gemini Models:", result.geminiModels);
-              } else {
-                alert(`Connection Failed:\n${result.error}\nCheck console for details.`);
-                console.error("Debug Result:", result);
-              }
-            }}
-          >
-            Troubleshoot Connection
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
