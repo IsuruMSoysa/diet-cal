@@ -14,6 +14,7 @@ export async function analyzeMeal(
   userDescription?: string
 ) {
   const modelsToTry = [
+    "gemini-2.5-flash-image",
     "gemini-2.0-flash",
     "gemini-2.5-flash",
     "gemini-2.0-flash-001",

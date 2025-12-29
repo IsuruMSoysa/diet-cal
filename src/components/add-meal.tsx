@@ -190,7 +190,7 @@ export function AddMeal() {
               className="flex items-center justify-center w-full h-40 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:border-gray-400 bg-green-500/40"
               onClick={() => document.getElementById("meal-image")?.click()}
             >
-              <p className="text-sm text-green-200">
+              <p className="text-sm text-green-200 text-center px-4">
                 Click to upload or drag and drop an image here
               </p>
               <Input
