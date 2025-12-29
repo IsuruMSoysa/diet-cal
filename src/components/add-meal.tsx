@@ -185,25 +185,44 @@ export function AddMeal() {
           <Label htmlFor="meal-image" className="mb-1">
             Meal Image
           </Label>
-          <div
-            className="flex items-center justify-center w-full h-40 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:border-gray-400 bg-green-500/40"
-            onClick={() => document.getElementById("meal-image")?.click()}
-          >
-            <p className="text-sm text-green-200">
-              Click to upload or drag and drop an image here
-            </p>
-          </div>
-          <Input
-            id="meal-image"
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
+          {!imageFile && (
+            <div
+              className="flex items-center justify-center w-full h-40 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:border-gray-400 bg-green-500/40"
+              onClick={() => document.getElementById("meal-image")?.click()}
+            >
+              <p className="text-sm text-green-200">
+                Click to upload or drag and drop an image here
+              </p>
+              <Input
+                id="meal-image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </div>
+          )}
         </div>
 
         {previewUrl && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-black/50 hover:bg-black/70 text-white hover:text-white backdrop-blur-sm"
+                onClick={() => {
+                  setImageFile(null);
+                  setPreviewUrl(null);
+                  setAnalysisResult(null);
+                  setDescription("");
+                  setSelectedLabels([]);
+                  setLabelInput("");
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             <Image
               src={previewUrl}
               alt="Meal preview"
