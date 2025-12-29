@@ -23,8 +23,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Case 2: User is on a public path but is already logged in (e.g., /login)
-  if (PUBLIC_PATHS.includes(request.nextUrl.pathname) && session) {
+  // Case 2: User is on /login but is already logged in
+  // Note: We don't redirect from "/" to allow client-side auth check to handle it
+  if (request.nextUrl.pathname === "/login" && session) {
     // Logged in users should be redirected from the login page to the dashboard
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
