@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Plus, History, BarChart3, User } from "lucide-react";
+import { Plus, History, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
