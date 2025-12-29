@@ -172,7 +172,7 @@ export async function deleteMealAction(mealId: string, userId: string) {
 
 export async function debugGemini() {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
       return {
         success: false,
