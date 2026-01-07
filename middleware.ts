@@ -24,12 +24,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Case 2: User is on /login but is already logged in
-  // Note: We don't redirect from "/" to allow client-side auth check to handle it
-  if (request.nextUrl.pathname === "/login" && session) {
-    // Logged in users should be redirected from the login page to the dashboard
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+  // Note: We intentionally do NOT redirect from "/login" based solely on the
+  // presence of a session cookie, because an expired/invalid cookie can cause
+  // an infinite redirect loop between "/dashboard" and "/login".
+  if (request.nextUrl.pathname === "/login") {
+    return NextResponse.next();
   }
 
   // Otherwise, allow the request to proceed
